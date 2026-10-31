@@ -1,0 +1,12 @@
+[build]
+  base = "frontend"
+  # Vite's default outDir points at ../backend/static for the FastAPI deployment;
+  # override it so Netlify publishes a self-contained build inside the base dir.
+  command = "npm ci --include=dev && npm run build -- --outDir dist"
+  publish = "dist"
+
+# Single-page app fallback so deep links and refreshes serve index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
