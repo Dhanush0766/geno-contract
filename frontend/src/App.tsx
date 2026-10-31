@@ -108,9 +108,26 @@ export const App: React.FC = () => {
   const { isConnected } = useWebSocket(handleWebSocketEvent);
 
   useEffect(() => {
-    loadSystemState();
-    const interval = setInterval(loadSystemState, 10000); // 10s fallback sync
-    return () => clearInterval(interval);
+    let isMounted = true;
+    const fetchInitial = async () => {
+      try {
+        await loadSystemState();
+      } catch {
+        // Handled inside loadSystemState
+      }
+    };
+    fetchInitial();
+
+    const interval = setInterval(() => {
+      if (isMounted) {
+        loadSystemState();
+      }
+    }, 10000); // 10s fallback sync
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, [loadSystemState]);
 
   const currentGateAction: GateAction = gate?.current_gate || 'ALLOW';

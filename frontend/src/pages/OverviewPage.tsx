@@ -39,6 +39,76 @@ interface OverviewPageProps {
   onTriggerOrder?: (bypassGating: boolean) => Promise<any>;
 }
 
+const CustomCompatTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div className="bg-slate-900/95 border border-slate-700/80 rounded-lg p-3 text-xs shadow-2xl backdrop-blur-md min-w-[210px] space-y-2">
+        <div className="flex items-center justify-between border-b border-slate-800 pb-1.5">
+          <span className="font-mono text-slate-400 font-semibold">{label}</span>
+          <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+            data.gate === 'ALLOW' ? 'bg-emerald-950 text-emerald-300 border border-emerald-800' :
+            data.gate === 'DEGRADE' ? 'bg-amber-950 text-amber-300 border border-amber-800' :
+            'bg-rose-950 text-rose-300 border border-rose-800'
+          }`}>
+            {data.gate}
+          </span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-slate-300 font-medium">Composite CS:</span>
+          <span className="font-extrabold text-indigo-400 text-sm">{data.cs}%</span>
+        </div>
+        <div className="grid grid-cols-2 gap-x-2 gap-y-1 pt-1 border-t border-slate-800/80 text-[11px]">
+          <div className="text-slate-400 flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-purple-400"></span> SCS: <span className="text-white font-medium ml-auto">{data.scs}%</span>
+          </div>
+          <div className="text-slate-400 flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-emerald-400"></span> SemCS: <span className="text-white font-medium ml-auto">{data.semcs}%</span>
+          </div>
+          <div className="text-slate-400 flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-amber-400"></span> TCS: <span className="text-white font-medium ml-auto">{data.tcs}%</span>
+          </div>
+          <div className="text-slate-400 flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-cyan-400"></span> RCS: <span className="text-white font-medium ml-auto">{data.rcs}%</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
+const CustomRiskTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div className="bg-slate-900/95 border border-slate-700/80 rounded-lg p-3 text-xs shadow-2xl backdrop-blur-md min-w-[210px] space-y-2">
+        <div className="flex items-center justify-between border-b border-slate-800 pb-1.5">
+          <span className="font-mono text-slate-400 font-semibold">{label}</span>
+          <span className="text-[10px] font-mono text-slate-400">&tau;=0.80, k=8.0</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-slate-300 font-medium">Predicted Risk (P_fail):</span>
+          <span className={`font-extrabold text-sm ${data.pFail >= 25 ? 'text-rose-400' : 'text-emerald-400'}`}>
+            {data.pFail}%
+          </span>
+        </div>
+        <div className="flex items-center justify-between text-[11px] pt-1 border-t border-slate-800/80">
+          <span className="text-slate-400">Active Gate Zone:</span>
+          <span className={`font-semibold ${
+            data.pFail < 25 ? 'text-emerald-400' :
+            data.pFail < 50 ? 'text-amber-400' :
+            data.pFail < 75 ? 'text-orange-400' : 'text-rose-400'
+          }`}>
+            {data.pFail < 25 ? 'ALLOW (<25%)' : data.pFail < 50 ? 'DEGRADE (25-50%)' : data.pFail < 75 ? 'REROUTE (50-75%)' : 'QUARANTINE (≥75%)'}
+          </span>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
 export const OverviewPage: React.FC<OverviewPageProps> = ({
   pcae,
   prediction,
@@ -297,75 +367,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
           ? [0, Math.min(100, Math.max(12, Math.ceil(maxRiskVal + 4)))]
           : [0, 100];
 
-        const CustomCompatTooltip = ({ active, payload, label }: any) => {
-          if (active && payload && payload.length) {
-            const data = payload[0].payload;
-            return (
-              <div className="bg-slate-900/95 border border-slate-700/80 rounded-lg p-3 text-xs shadow-2xl backdrop-blur-md min-w-[210px] space-y-2">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-1.5">
-                  <span className="font-mono text-slate-400 font-semibold">{label}</span>
-                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                    data.gate === 'ALLOW' ? 'bg-emerald-950 text-emerald-300 border border-emerald-800' :
-                    data.gate === 'DEGRADE' ? 'bg-amber-950 text-amber-300 border border-amber-800' :
-                    'bg-rose-950 text-rose-300 border border-rose-800'
-                  }`}>
-                    {data.gate}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-300 font-medium">Composite CS:</span>
-                  <span className="font-extrabold text-indigo-400 text-sm">{data.cs}%</span>
-                </div>
-                <div className="grid grid-cols-2 gap-x-2 gap-y-1 pt-1 border-t border-slate-800/80 text-[11px]">
-                  <div className="text-slate-400 flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-purple-400"></span> SCS: <span className="text-white font-medium ml-auto">{data.scs}%</span>
-                  </div>
-                  <div className="text-slate-400 flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400"></span> SemCS: <span className="text-white font-medium ml-auto">{data.semcs}%</span>
-                  </div>
-                  <div className="text-slate-400 flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-amber-400"></span> TCS: <span className="text-white font-medium ml-auto">{data.tcs}%</span>
-                  </div>
-                  <div className="text-slate-400 flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-cyan-400"></span> RCS: <span className="text-white font-medium ml-auto">{data.rcs}%</span>
-                  </div>
-                </div>
-              </div>
-            );
-          }
-          return null;
-        };
 
-        const CustomRiskTooltip = ({ active, payload, label }: any) => {
-          if (active && payload && payload.length) {
-            const data = payload[0].payload;
-            return (
-              <div className="bg-slate-900/95 border border-slate-700/80 rounded-lg p-3 text-xs shadow-2xl backdrop-blur-md min-w-[210px] space-y-2">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-1.5">
-                  <span className="font-mono text-slate-400 font-semibold">{label}</span>
-                  <span className="text-[10px] font-mono text-slate-400">&tau;=0.80, k=8.0</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-300 font-medium">Predicted Risk (P_fail):</span>
-                  <span className={`font-extrabold text-sm ${data.pFail >= 25 ? 'text-rose-400' : 'text-emerald-400'}`}>
-                    {data.pFail}%
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-[11px] pt-1 border-t border-slate-800/80">
-                  <span className="text-slate-400">Active Gate Zone:</span>
-                  <span className={`font-semibold ${
-                    data.pFail < 25 ? 'text-emerald-400' :
-                    data.pFail < 50 ? 'text-amber-400' :
-                    data.pFail < 75 ? 'text-orange-400' : 'text-rose-400'
-                  }`}>
-                    {data.pFail < 25 ? 'ALLOW (<25%)' : data.pFail < 50 ? 'DEGRADE (25-50%)' : data.pFail < 75 ? 'REROUTE (50-75%)' : 'QUARANTINE (≥75%)'}
-                  </span>
-                </div>
-              </div>
-            );
-          }
-          return null;
-        };
 
         return (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
